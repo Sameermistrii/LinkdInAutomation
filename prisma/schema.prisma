@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String    @id @default(cuid())
+  email                  String    @unique
+  name                   String    @default("")
+  picture                String    @default("")
+  provider               String
+  onboardingCompletedAt  DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  linkedIn      LinkedInAccount?
+  organizations Organization[]
+  scheduleRules ScheduleRule[]
+  extraSlots    ExtraSlot[]
+  scheduleSkips ScheduleSkip[]
+  posts         Post[]
+  interests     Interest[]
+  savedLeaders  SavedLeader[]
+}
+
+model LinkedInAccount {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  personUrn      String
+  personId       String   @unique
+  name           String
+  headline       String   @default("")
+  photoUrl       String   @default("")
+  email          String   @default("")
+  accessToken    String
+  refreshToken   String   @default("")
+  tokenExpiresAt DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  urn       String
+  name      String
+  logoUrl   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, urn])
+}
+
+model ScheduleRule {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekday   Int
+  time      String
+  createdAt DateTime @default(now())
+}
+
+model ExtraSlot {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  at        DateTime
+  createdAt DateTime @default(now())
+}
+
+model ScheduleSkip {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+}
+
+model Interest {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug      String
+  label     String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, slug])
+}
+
+model SavedLeader {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catalogId  String   @default("")
+  customUrl  String   @default("")
+  customName String   @default("")
+  createdAt  DateTime @default(now())
+}
+
+model Post {
+  id              Int         @id @default(autoincrement())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body            String      @default("")
+  firstComment    String      @default("")
+  mediaPath       String      @default("")
+  mediaType       String      @default("")
+  authorType      AuthorType  @default(PERSON)
+  organizationUrn String      @default("")
+  status          PostStatus  @default(draft)
+  scheduledAt     DateTime?
+  publishedAt     DateTime?
+  linkedinPostUrn String      @default("")
+  errorMessage    String      @default("")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+enum AuthorType {
+  PERSON
+  ORGANIZATION
+}
+
+enum PostStatus {
+  draft
+  queued
+  published
+  error
+}

@@ -1,0 +1,338 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { Header } from "@/components/Header";
+import { QueueBoard, type QueueSlot } from "@/components/QueueBoard";
+import { ScheduleModal } from "@/components/ScheduleModal";
+import { StatusTabs, type TabKey } from "@/components/StatusTabs";
+
+type Post = {
+  id: number;
+  body: string;
+  status: "draft" | "queued" | "published" | "error";
+  scheduledAt: string | null;
+  publishedAt: string | null;
+  errorMessage: string;
+};
+
+type Account = {
+  name: string;
+  headline: string;
+  photoUrl: string;
+};
+
+type Initial = {
+  name: string;
+  photoUrl: string;
+  headline: string;
+  connected: boolean;
+};
+
+export function Dashboard({ initial }: { initial: Initial }) {
+  const [tab, setTab] = useState<TabKey>("queued");
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [counts, setCounts] = useState<Record<TabKey, number>>({
+    queued: 0,
+    published: 0,
+    draft: 0,
+    error: 0,
+  });
+  const [slots, setSlots] = useState<QueueSlot[]>([]);
+  const [rules, setRules] = useState<{ weekday: number; time: string }[]>([]);
+  const [account, setAccount] = useState<Account | null>(
+    initial.connected
+      ? { name: initial.name, headline: initial.headline, photoUrl: initial.photoUrl }
+      : null,
+  );
+  const [sessionName, setSessionName] = useState(initial.name);
+  const [sessionPhoto, setSessionPhoto] = useState(initial.photoUrl);
+  const [connected, setConnected] = useState(initial.connected);
+  const [ready, setReady] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  async function load() {
+    try {
+      const [postsRes, slotsRes, scheduleRes, accountRes, meRes] = await Promise.all([
+        fetch("/api/posts").then((r) => r.json()),
+        fetch("/api/queue-slots").then((r) => r.json()),
+        fetch("/api/schedule").then((r) => r.json()),
+        fetch("/api/account").then((r) => r.json()),
+        fetch("/api/auth/me").then((r) => r.json()),
+      ]);
+      const loaded: Post[] = postsRes.posts ?? [];
+      setPosts(loaded);
+      setCounts({
+        queued: loaded.filter((p) => p.status === "queued").length,
+        published: loaded.filter((p) => p.status === "published").length,
+        draft: loaded.filter((p) => p.status === "draft").length,
+        error: loaded.filter((p) => p.status === "error").length,
+      });
+      setSlots(slotsRes.slots ?? []);
+      setRules(scheduleRes.rules ?? []);
+      setConnected(Boolean(accountRes.connected));
+      setAccount(accountRes.account);
+      setSessionName(meRes.user?.name || accountRes.account?.name || initial.name);
+      setSessionPhoto(meRes.user?.picture || accountRes.account?.photoUrl || initial.photoUrl);
+    } finally {
+      setReady(true);
+    }
+  }
+
+  useEffect(() => {
+    void load();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("connected")) setNotice("LinkedIn connected.");
+    if (params.get("authError")) setNotice(params.get("authError") || "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (scheduleOpen) return;
+    const tick = () => void load();
+    const id = window.setInterval(tick, 15_000);
+    const onShow = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onShow);
+    window.addEventListener("focus", tick);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onShow);
+      window.removeEventListener("focus", tick);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scheduleOpen]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 10_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const upcomingSlots = useMemo(
+    () => slots.filter((s) => new Date(s.at).getTime() > nowMs),
+    [slots, nowMs],
+  );
+
+  const subtitle = useMemo(() => {
+    if (!ready) return "Loading your posts…";
+    if (!connected) return "Connect LinkedIn to start scheduling.";
+    const openSlots = upcomingSlots.filter((s) => !s.post).length;
+    if (counts.queued === 0 && openSlots === 0) return "You have no scheduled posts.";
+    if (counts.queued === 0) {
+      return `${openSlots} open slot${openSlots === 1 ? "" : "s"} this week — add posts to fill them.`;
+    }
+    return `You have ${counts.queued} scheduled post${counts.queued === 1 ? "" : "s"}.`;
+  }, [ready, connected, counts.queued, upcomingSlots]);
+
+  async function removePost(id: number) {
+    await fetch(`/api/posts/${id}`, { method: "DELETE" });
+    await load();
+  }
+
+  async function skipDay(date: string) {
+    await fetch("/api/schedule", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "skip", date }),
+    });
+    await load();
+  }
+
+  async function postNow(id: number) {
+    const res = await fetch(`/api/posts/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "now" }),
+    });
+    const json = await res.json();
+    if (!res.ok) setNotice(json.error || "Could not publish");
+    else setNotice("Published to LinkedIn.");
+    await load();
+  }
+
+  const list = posts.filter((p) => p.status === tab);
+  const showQueue = connected;
+
+  return (
+    <main className="mx-auto max-w-5xl px-6 py-10">
+      <Header
+        title="My posts."
+        subtitle={subtitle}
+        connected={connected}
+        name={account?.name || sessionName}
+        photoUrl={account?.photoUrl || sessionPhoto}
+        compact
+      />
+
+      {notice ? (
+        <div className="mb-4 rounded-xl border border-[var(--line)] bg-[var(--card)] px-4 py-3 text-sm">
+          {notice}
+        </div>
+      ) : null}
+
+      {!ready ? (
+        <div className="card h-40 animate-pulse border-[var(--line)]" />
+      ) : !showQueue ? (
+        <div className="card p-8">
+          <p className="mb-4 max-w-xl text-[var(--muted)]">
+            Connect LinkedIn once so we can publish to your profile or Company Page. Signing in with
+            Google only opens your dashboard.
+          </p>
+          <Link
+            href="/api/auth/linkedin"
+            className="inline-flex rounded-full bg-[#0a66c2] px-5 py-2.5 text-sm font-medium text-white"
+          >
+            Connect LinkedIn
+          </Link>
+        </div>
+      ) : (
+        <>
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+            <StatusTabs active={tab} counts={counts} onChange={setTab} />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setScheduleOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card)] px-4 py-2 text-sm"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                </svg>
+                Edit post schedule
+              </button>
+              <Link
+                href="/compose"
+                className="rounded-full border border-[var(--line)] px-4 py-2 text-sm"
+              >
+                Post now
+              </Link>
+              <Link
+                href="/compose"
+                className="rounded-full bg-[var(--blue)] px-4 py-2 text-sm font-medium text-white"
+              >
+                New post
+              </Link>
+            </div>
+          </div>
+
+          {tab === "queued" ? (
+            upcomingSlots.length ? (
+              <QueueBoard
+                slots={upcomingSlots}
+                name={account?.name || sessionName}
+                photoUrl={account?.photoUrl || sessionPhoto}
+                onDelete={(id) => void removePost(id)}
+                onSkipDay={(date) => void skipDay(date)}
+                onPostNow={(id) => void postNow(id)}
+              />
+            ) : (
+              <PostList
+                posts={list}
+                emptyText="No scheduled posts."
+                onDelete={(id) => void removePost(id)}
+                onPostNow={(id) => void postNow(id)}
+              />
+            )
+          ) : (
+            <PostList
+              posts={list}
+              onDelete={(id) => void removePost(id)}
+              onPostNow={(id) => void postNow(id)}
+            />
+          )}
+        </>
+      )}
+
+      <button
+        type="button"
+        className="fixed right-6 bottom-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--blue)] text-white shadow-lg"
+        title="Help"
+        onClick={() =>
+          setNotice("Add posts to your time slots. They publish automatically when a slot is due.")
+        }
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+        </svg>
+      </button>
+
+      <ScheduleModal
+        open={scheduleOpen}
+        rules={rules}
+        onClose={() => setScheduleOpen(false)}
+        onSave={async (next) => {
+          const res = await fetch("/api/schedule", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rules: next }),
+          });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.error || "Save failed");
+          setRules(json.rules);
+          await load();
+        }}
+        onAddExtra={async (at) => {
+          const res = await fetch("/api/schedule", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(at ? { action: "extra", at } : { action: "extra", minutesFromNow: 2 }),
+          });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.error || "Could not add slot");
+          if (json.weekday != null && json.time) {
+            setRules((prev) =>
+              prev.some((r) => r.weekday === json.weekday && r.time === json.time)
+                ? prev
+                : [...prev, { weekday: json.weekday, time: json.time }],
+            );
+          }
+          await load();
+          setNotice("Day added. Put a post in that slot with Add to queue.");
+        }}
+      />
+    </main>
+  );
+}
+
+function PostList({
+  posts,
+  onDelete,
+  onPostNow,
+  emptyText = "Nothing here yet.",
+}: {
+  posts: Post[];
+  onDelete: (id: number) => void;
+  onPostNow: (id: number) => void;
+  emptyText?: string;
+}) {
+  if (!posts.length) {
+    return <div className="card p-8 text-[var(--muted)]">{emptyText}</div>;
+  }
+  return (
+    <div className="space-y-3">
+      {posts.map((post) => (
+        <div key={post.id} className="card flex items-center gap-4 px-5 py-4">
+          <p className="min-w-0 flex-1 truncate">{post.body || "Untitled post"}</p>
+          {post.errorMessage ? (
+            <span className="max-w-xs truncate text-xs text-red-600">{post.errorMessage}</span>
+          ) : null}
+          <Link href={`/compose/${post.id}`} className="text-sm text-[var(--blue)]">
+            Edit
+          </Link>
+          {post.status !== "published" ? (
+            <button type="button" className="text-sm text-[var(--blue)]" onClick={() => onPostNow(post.id)}>
+              Post now
+            </button>
+          ) : null}
+          <button type="button" className="text-sm text-[var(--muted)]" onClick={() => onDelete(post.id)}>
+            Delete
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
