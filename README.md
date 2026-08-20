@@ -1,9 +1,9 @@
 
 # UniSin
 
-Schedule LinkedIn Post. You write a post, drop it in a queue, and a worker publishes it at the slot you picked. No scraping.
+Schedule LinkedIn Post. You write a post, drop it in a queue, and a worker publishes it at the slot you picked. No scrapig. 
 
-                                 https://www.unisin.in/home
+TRY IT - https://www.unisin.in/home
 
 ## What it does
 
