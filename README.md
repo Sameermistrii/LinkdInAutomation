@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # UniSin
 
 Schedule LinkedIn posts through the **official LinkedIn API**. You write a post, drop it in a queue, and a worker publishes it at the slot you picked. No scraping.
@@ -48,8 +47,8 @@ Use **port 3000**. The sample `.env` and the OAuth consoles below are written fo
 ### Step 1 — Get the code
 
 ```bash
-git clone <your-fork-url>
-cd "Linkden Automation"
+git clone https://github.com/Sameermistrii/Linkdin_Automation.git
+cd Linkdin_Automation
 npm install
 ```
 
@@ -272,30 +271,91 @@ That process must stay running on a machine that has internet. If you close it, 
 
 ---
 
-## Hosted setup (Vercel)
+## Hosted setup (unisin.in on Vercel)
 
-Same app, but Postgres and files live in the cloud. Typical pieces: **Vercel** (Next.js) + **Neon** (Postgres) + **Vercel Blob** (images).
+Live site: **https://unisin.in**  
+Code: [github.com/Sameermistrii/Linkdin_Automation](https://github.com/Sameermistrii/Linkdin_Automation)
 
-1. Create a Neon project. Copy the connection string into Vercel env as `DATABASE_URL` (with SSL as Neon documents).
-2. Create a Blob store on Vercel. Copy `BLOB_READ_WRITE_TOKEN`.
-3. In the **same** Google and LinkedIn apps, **add production redirects** (keep localhost too if you still develop locally):
-   - `https://YOUR_DOMAIN/api/auth/google/callback`
-   - `https://YOUR_DOMAIN/api/auth/linkedin/callback`
-4. In Vercel → Project → Settings → Environment Variables, set:
-   - all OAuth vars (ids, secrets, redirect URIs pointing at **https://YOUR_DOMAIN/...**)
-   - `DATABASE_URL`
-   - `BLOB_READ_WRITE_TOKEN`
-   - `SESSION_SECRET` and `CRON_SECRET` (new random values, not the local ones if you can avoid sharing)
-   - `NEXT_PUBLIC_APP_URL=https://YOUR_DOMAIN`
-5. Build command:
+Stack: **Vercel** (Next.js) + **Neon** (Postgres) + **Vercel Blob** (images). `.env` stays on your computer. Vercel gets the same keys as **environment variables**. Never commit `.env`.
+
+### 1. Push this repo (already the GitHub project)
+
+If you cloned from GitHub, `git push origin master` is enough. GitHub must show the files (not “This repository is empty”).
+
+### 2. Import on Vercel
+
+1. Log in at [vercel.com](https://vercel.com) with the same GitHub account (`Sameermistrii`).
+2. **Add New** → **Project** → import **Linkdin_Automation**.
+3. Framework: Next.js (auto).
+4. **Build Command:**
 
 ```
-npx prisma migrate deploy && next build
+next build
 ```
 
-6. `vercel.json` hits `/api/cron/publish` every minute with `Authorization: Bearer CRON_SECRET`. **Vercel Hobby** may only run cron **once a day**. For posts that must go out on the minute, use Vercel Pro or run `npm run worker` on a cheap always-on VPS that uses the same `DATABASE_URL`.
+(`postinstall` already runs `prisma generate`. Do **not** put `prisma migrate deploy` in the Vercel build — a failed migration like P3009 will block every deploy. Apply schema from your laptop once: `npx prisma migrate deploy` with Neon’s `DATABASE_URL`.)
 
-Never put `.env` in GitHub. Vercel env is the hosted copy of those secrets.
+5. Do **not** deploy yet if env vars are empty — add them first (next steps), then Deploy.
+
+### 3. Neon database
+
+1. Create a project at [neon.tech](https://neon.tech).
+2. Copy the connection string.
+3. In Vercel → Project → Settings → Environment Variables → `DATABASE_URL` = that string (include `sslmode=require` if Neon shows it).
+
+### 4. Vercel Blob (images)
+
+1. Vercel dashboard → Storage → create **Blob**.
+2. Copy `BLOB_READ_WRITE_TOKEN` into Vercel env.
+
+### 5. Google and LinkedIn (production URLs)
+
+Keep localhost redirects for local dev. **Add** these as well:
+
+- Google JavaScript origin: `https://unisin.in`
+- Google redirect: `https://unisin.in/api/auth/google/callback`
+- LinkedIn redirect: `https://unisin.in/api/auth/linkedin/callback`
+
+If you also use `www`:
+
+- `https://www.unisin.in`
+- `https://www.unisin.in/api/auth/google/callback`
+- `https://www.unisin.in/api/auth/linkedin/callback`
+
+### 6. Vercel environment variables
+
+Set for **Production** (and Preview if you want preview deploys to log in):
+
+| Name | Production value |
+| --- | --- |
+| `GOOGLE_CLIENT_ID` | same as local |
+| `GOOGLE_CLIENT_SECRET` | same as local |
+| `GOOGLE_REDIRECT_URI` | `https://unisin.in/api/auth/google/callback` |
+| `LINKEDIN_CLIENT_ID` | same as local |
+| `LINKEDIN_CLIENT_SECRET` | same as local |
+| `LINKEDIN_REDIRECT_URI` | `https://unisin.in/api/auth/linkedin/callback` |
+| `LINKEDIN_API_VERSION` | `202608` |
+| `DATABASE_URL` | Neon URL |
+| `BLOB_READ_WRITE_TOKEN` | Blob token |
+| `SESSION_SECRET` | new long random string |
+| `CRON_SECRET` | another long random string |
+| `NEXT_PUBLIC_APP_URL` | `https://unisin.in` |
+
+Redeploy after saving env vars.
+
+### 7. Point unisin.in at Vercel
+
+1. Vercel → Project → **Settings** → **Domains** → add `unisin.in` and `www.unisin.in`.
+2. Vercel shows DNS records. At your domain registrar (where you bought Unisin.in), set what they ask for, usually:
+   - **A** record for `@` (apex) → Vercel’s IP, **or** their **ALIAS/ANAME**
+   - **CNAME** `www` → `cname.vercel-dns.com`
+3. Wait for DNS (minutes to a few hours). HTTPS is automatic on Vercel.
+
+### 8. Cron / publishing on the host
+
+`vercel.json` calls `/api/cron/publish` **once a day** at 08:00 UTC (`0 8 * * *`). Hobby accounts reject every-minute cron (`* * * * *`).
+
+Queued posts therefore go out at that daily tick (or later if the slot was earlier the same day). For on-the-minute publish: Vercel **Pro** (then you can set cron back to `* * * * *`), or run `npm run worker` on a small always-on VPS using the **same** `DATABASE_URL`.
 
 ## How keys work
 
@@ -316,6 +376,3 @@ Same model as Buffer or Notion: platform secrets in env, user tokens in the data
 | `npx prisma generate` | Prisma client (`generated/prisma`) |
 
 Made with 💙 by [Sameer Mistri](https://github.com/Sameermistrii).
-=======
-# LinkdInAutomation
->>>>>>> 032e7dc8f9ed1e25ba6cb7ad017f53c0d8ff3ae1
