@@ -25,6 +25,7 @@ export async function PUT(request: Request) {
     at?: string;
     from?: string;
     date?: string;
+    ats?: string[];
     minutesFromNow?: number;
   };
 
@@ -42,6 +43,11 @@ export async function PUT(request: Request) {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Could not save extra slot";
       if (!/Unique constraint/i.test(message)) return jsonError(message);
+    }
+    if (body.date) {
+      await prisma.scheduleSkip.deleteMany({ where: { userId: session.userId, date: body.date } });
+    } else {
+      await prisma.scheduleSkip.deleteMany({ where: { userId: session.userId } });
     }
     return NextResponse.json({ ok: true, at: at.toISOString(), weekday, time });
   }
@@ -69,12 +75,13 @@ export async function PUT(request: Request) {
     return NextResponse.json({ ok: true, at: to.toISOString() });
   }
 
-  if (body.action === "skip" && body.date) {
-    await prisma.scheduleSkip.upsert({
-      where: { userId_date: { userId: session.userId, date: body.date } },
-      create: { userId: session.userId, date: body.date },
-      update: {},
-    });
+  if (body.action === "skip") {
+    const ats = (body.ats ?? []).map((value) => new Date(value)).filter((d) => !Number.isNaN(d.getTime()));
+    if (ats.length) {
+      await prisma.extraSlot.deleteMany({
+        where: { userId: session.userId, at: { in: ats } },
+      });
+    }
     return NextResponse.json({ ok: true });
   }
 

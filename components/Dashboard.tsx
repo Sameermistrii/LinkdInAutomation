@@ -131,12 +131,14 @@ export function Dashboard({ initial }: { initial: Initial }) {
     await load();
   }
 
-  async function skipDay(date: string) {
-    await fetch("/api/schedule", {
+  async function skipDay(date: string, ats: string[]) {
+    const res = await fetch("/api/schedule", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "skip", date }),
+      body: JSON.stringify({ action: "skip", date, ats }),
     });
+    const json = await res.json();
+    if (!res.ok) setNotice(json.error || "Could not skip this day");
     await load();
   }
 
@@ -207,27 +209,18 @@ export function Dashboard({ initial }: { initial: Initial }) {
           </div>
 
           {tab === "queued" ? (
-            upcomingSlots.length ? (
               <QueueBoard
                 slots={upcomingSlots}
                 name={account?.name || sessionName}
                 photoUrl={account?.photoUrl || sessionPhoto}
                 onDelete={(id) => void removePost(id)}
-                onSkipDay={(date) => void skipDay(date)}
+                onSkipDay={(date, ats) => void skipDay(date, ats)}
                 onPostNow={(id) => void postNow(id)}
                 onEditSlot={(at) => {
                   setScheduleEditAt(at);
                   setScheduleOpen(true);
                 }}
               />
-            ) : (
-              <PostList
-                posts={list}
-                emptyText="No scheduled posts."
-                onDelete={(id) => void removePost(id)}
-                onPostNow={(id) => void postNow(id)}
-              />
-            )
           ) : (
             <PostList
               posts={list}
@@ -258,11 +251,13 @@ export function Dashboard({ initial }: { initial: Initial }) {
           setScheduleOpen(false);
           setScheduleEditAt(null);
         }}
-        onSubmit={async (at, from) => {
+        onSubmit={async (at, from, date) => {
           const res = await fetch("/api/schedule", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(from ? { action: "move", from, at } : { action: "extra", at }),
+            body: JSON.stringify(
+              from ? { action: "move", from, at, date } : { action: "extra", at, date },
+            ),
           });
           const json = await res.json();
           if (!res.ok) throw new Error(json.error || "Could not save schedule");

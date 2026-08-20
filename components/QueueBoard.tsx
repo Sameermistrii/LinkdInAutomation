@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { formatTimeLabel, dateKey } from "@/lib/datetime";
+import { dateKey, formatAtTime } from "@/lib/datetime";
 
 export type QueuePost = {
   id: number;
@@ -13,7 +13,6 @@ export type QueuePost = {
 
 export type QueueSlot = {
   at: string;
-  time: string;
   weekday: number;
   extra?: boolean;
   post: QueuePost | null;
@@ -32,7 +31,7 @@ export function QueueBoard({
   name?: string;
   photoUrl?: string;
   onDelete: (id: number) => void;
-  onSkipDay: (date: string) => void;
+  onSkipDay: (date: string, ats: string[]) => void;
   onPostNow: (id: number) => void;
   onEditSlot: (at: string) => void;
 }) {
@@ -79,7 +78,7 @@ export function QueueBoard({
                 <button
                   type="button"
                   className="self-start text-sm font-semibold text-[#004e99] hover:underline sm:self-auto"
-                  onClick={() => onSkipDay(group.date)}
+                  onClick={() => onSkipDay(group.date, group.slots.map((s) => s.at))}
                 >
                   Skip this day
                 </button>
@@ -132,7 +131,7 @@ function SlotRow({
           title="Edit this time"
           onClick={() => onEditSlot(slot.at)}
         >
-          {formatTimeLabel(slot.time)}
+          {formatAtTime(slot.at)}
         </button>
       </div>
 

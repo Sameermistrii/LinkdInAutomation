@@ -12,7 +12,7 @@ export function ScheduleModal({
   open: boolean;
   initialAt?: string | null;
   onClose: () => void;
-  onSubmit: (at: string, from?: string) => Promise<void>;
+  onSubmit: (at: string, from: string | undefined, date: string) => Promise<void>;
 }) {
   const editing = Boolean(initialAt);
   const [date, setDate] = useState("");
@@ -64,7 +64,7 @@ export function ScheduleModal({
     setSaving(true);
     setError("");
     try {
-      await onSubmit(at.toISOString(), initialAt || undefined);
+      await onSubmit(at.toISOString(), initialAt || undefined, date);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save");
