@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "./prisma";
 import { getSession, type SessionUser } from "./session";
 
+// Users who already posted skip the onboarding screens.
 export async function ensureOnboardingFlag(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -47,12 +48,10 @@ export async function getShellContext() {
   };
 }
 
-export async function requireAppPage(opts?: { allowIncomplete?: boolean }) {
+export async function requireAppPage() {
   const ctx = await getShellContext();
   if (!ctx.session) redirect("/login");
-  if (ctx.connected && !ctx.completed && !opts?.allowIncomplete) {
-    redirect("/onboarding/interests");
-  }
+  if (ctx.connected && !ctx.completed) redirect("/onboarding/interests");
   return ctx;
 }
 

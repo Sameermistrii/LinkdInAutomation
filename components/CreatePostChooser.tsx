@@ -25,12 +25,12 @@ export function CreatePostChooser({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-[60] flex items-stretch justify-center bg-black/40 sm:items-center sm:p-4"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="card relative w-full max-w-2xl p-8 shadow-xl"
+        className="card relative flex h-full w-full max-w-2xl flex-col overflow-y-auto rounded-none p-6 shadow-xl sm:h-auto sm:rounded-2xl sm:p-8"
         role="dialog"
         aria-labelledby="create-post-title"
         onClick={(e) => e.stopPropagation()}
@@ -43,7 +43,7 @@ export function CreatePostChooser({
         >
           ×
         </button>
-        <h2 id="create-post-title" className="mb-8 text-center text-2xl font-semibold tracking-tight">
+        <h2 id="create-post-title" className="mb-8 pr-8 text-center text-xl font-semibold tracking-tight sm:text-2xl">
           Ready to create your next LinkedIn post?
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">

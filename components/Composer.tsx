@@ -55,6 +55,7 @@ export function Composer({
   const [error, setError] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
 
+  // Blob URLs stay absolute; local uploads are served from /api/media.
   const mediaUrl = mediaPath
     ? mediaPath.startsWith("http://") || mediaPath.startsWith("https://")
       ? mediaPath
@@ -171,7 +172,7 @@ export function Composer({
         onEditBody={() => textareaRef.current?.focus()}
       />
 
-      <div className="mx-auto mt-3 flex max-w-[680px] items-center justify-between px-2">
+      <div className="mx-auto mt-3 flex max-w-[680px] flex-wrap items-center justify-between gap-2 px-2">
         <div className="flex items-center gap-1">
           <input
             ref={fileRef}
@@ -270,12 +271,12 @@ export function Composer({
 
       {error ? <p className="mx-auto mt-4 max-w-[680px] text-sm text-red-600">{error}</p> : null}
 
-      <div className="mx-auto mt-6 flex max-w-[680px] flex-wrap justify-end gap-2">
+      <div className="mx-auto mt-6 flex max-w-[680px] flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
         <button
           type="button"
           disabled={saving}
           onClick={() => void save("draft")}
-          className="rounded-full border border-[var(--line)] px-4 py-2 text-sm"
+          className="w-full rounded-full border border-[var(--line)] px-4 py-2 text-sm sm:w-auto"
         >
           Save draft
         </button>
@@ -284,7 +285,7 @@ export function Composer({
             type="button"
             disabled={saving}
             onClick={() => void save("slot")}
-            className="rounded-full bg-[var(--blue)] px-4 py-2 text-sm font-medium text-white"
+            className="w-full rounded-full bg-[var(--blue)] px-4 py-2 text-sm font-medium text-white sm:w-auto"
           >
             Add to this slot
           </button>
@@ -293,7 +294,7 @@ export function Composer({
             type="button"
             disabled={saving}
             onClick={() => void save("next-slot")}
-            className="rounded-full bg-[var(--blue)] px-4 py-2 text-sm font-medium text-white"
+            className="w-full rounded-full bg-[var(--blue)] px-4 py-2 text-sm font-medium text-white sm:w-auto"
           >
             Add to queue
           </button>
@@ -302,7 +303,7 @@ export function Composer({
           type="button"
           disabled={saving}
           onClick={() => void save("now")}
-          className="rounded-full bg-[#0a66c2] px-4 py-2 text-sm font-medium text-white"
+          className="w-full rounded-full bg-[#0a66c2] px-4 py-2 text-sm font-medium text-white sm:w-auto"
         >
           Post now
         </button>

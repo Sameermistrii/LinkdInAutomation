@@ -10,8 +10,12 @@ function avatar(name: string) {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0a66c2&color=fff&size=128`;
 }
 
-export function leaderPhoto(leader: { name: string }) {
-  return avatar(leader.name);
+// LinkedIn photo via unavatar, with a generated avatar fallback.
+export function leaderPhoto(leader: { name: string; linkedinUrl?: string }) {
+  const handle = leader.linkedinUrl?.match(/linkedin\.com\/in\/([^/?#]+)/i)?.[1];
+  if (!handle) return avatar(leader.name);
+  const fallback = avatar(leader.name);
+  return `https://unavatar.io/linkedin/${encodeURIComponent(handle)}?fallback=${encodeURIComponent(fallback)}`;
 }
 
 export const THOUGHT_LEADERS: CatalogLeader[] = [

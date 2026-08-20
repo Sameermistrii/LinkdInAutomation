@@ -10,6 +10,7 @@ import {
 import { readMediaBytes } from "./media";
 import { consumeExtraSlot } from "./schedule";
 
+// Person URN unless this post is set to a Company Page.
 function ownerUrn(post: { authorType: string; organizationUrn: string }, personUrn: string) {
   if (post.authorType === "ORGANIZATION" && post.organizationUrn) return post.organizationUrn;
   return personUrn;

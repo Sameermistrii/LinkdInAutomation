@@ -22,7 +22,8 @@ export default async function ComposePage({
 
   return (
     <AppShell name={ctx.name || ctx.session!.name} photoUrl={ctx.photoUrl || ""} connected={ctx.connected}>
-      <h1 className="mb-2 text-3xl font-semibold tracking-tight">New post</h1>
+      <div className="px-4 py-6 md:px-8">
+      <h1 className="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl">New post</h1>
       <p className="mb-8 text-[var(--muted)]">Preview exactly how it will look, then add it to the queue.</p>
       <Composer
         slot={slot ?? null}
@@ -34,6 +35,7 @@ export default async function ComposePage({
         }}
         organizations={organizations}
       />
+      </div>
     </AppShell>
   );
 }

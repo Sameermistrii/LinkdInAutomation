@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { jsonError } from "@/lib/http";
 import { getScheduleRules } from "@/lib/schedule";
 import { requireUser } from "@/lib/session";
+import { timeFromDate } from "@/lib/datetime";
 
 export async function GET() {
   const { session, error } = await requireUser();
@@ -30,7 +31,7 @@ export async function PUT(request: Request) {
     let at = body.at ? new Date(body.at) : new Date(Date.now() + (body.minutesFromNow ?? 2) * 60 * 1000);
     if (Number.isNaN(at.getTime())) return jsonError("Pick a valid date and time");
     at.setSeconds(0, 0);
-    const time = `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`;
+    const time = timeFromDate(at);
     const weekday = at.getDay();
     if (!body.minutesFromNow && at.getTime() <= Date.now()) {
       return jsonError("That time has already passed. Pick a later time.");

@@ -20,7 +20,7 @@ export async function GET() {
     prisma.linkedInAccount.findUnique({ where: { userId: session.userId } }),
     prisma.user.findUnique({
       where: { id: session.userId },
-      select: { onboardingCompletedAt: true },
+      select: { onboardingCompletedAt: true, personaBio: true, companyBio: true },
     }),
     prisma.interest.findMany({ where: { userId: session.userId }, orderBy: { createdAt: "asc" } }),
     prisma.savedLeader.findMany({ where: { userId: session.userId }, orderBy: { createdAt: "asc" } }),
@@ -63,6 +63,8 @@ export async function GET() {
       name: account?.name || session.name,
       headline,
       photoUrl: account?.photoUrl || session.picture,
+      personaBio: user?.personaBio || "",
+      companyBio: user?.companyBio || "",
     },
     topics: TOPICS,
     suggested: suggested.map((t) => t.slug),
@@ -77,10 +79,12 @@ export async function PUT(request: Request) {
   const { session, error } = await requireUser();
   if (error || !session) return error!;
   const body = (await request.json()) as {
-    action?: "interests" | "leaders" | "complete" | "skip";
+    action?: "interests" | "leaders" | "complete" | "skip" | "persona";
     interests?: { slug: string; label: string }[];
     catalogIds?: string[];
     custom?: { url: string; name?: string }[];
+    personaBio?: string;
+    companyBio?: string;
   };
 
   if (body.action === "skip" || body.action === "complete") {
@@ -99,6 +103,16 @@ export async function PUT(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  if (body.action === "persona") {
+    const personaBio = (body.personaBio ?? "").slice(0, 5000);
+    const companyBio = (body.companyBio ?? "").slice(0, 5000);
+    await prisma.user.update({
+      where: { id: session.userId },
+      data: { personaBio, companyBio },
+    });
+    return NextResponse.json({ ok: true });
+  }
+
   if (body.action === "interests") {
     const items = (body.interests ?? [])
       .map((item) => ({
@@ -106,7 +120,7 @@ export async function PUT(request: Request) {
         label: item.label.trim(),
       }))
       .filter((item) => item.label);
-    if (items.length > 8) return jsonError("Choose up to 8 topics");
+    if (items.length > 10) return jsonError("Choose up to 10 topics");
     await prisma.interest.deleteMany({ where: { userId: session.userId } });
     if (items.length) {
       await prisma.interest.createMany({

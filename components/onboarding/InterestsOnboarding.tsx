@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { BrandMark } from "@/components/BrandMark";
 import { slugifyLabel } from "@/lib/topics";
 
 type Topic = { slug: string; label: string };
@@ -90,13 +90,8 @@ export function InterestsOnboarding() {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#f6fafe] text-[var(--ink)] dark:bg-[var(--bg)]">
       <header className="fixed top-0 z-50 w-full border-b border-white/20 bg-[#f6fafe]/60 shadow-[0_1px_12px_rgba(0,0,0,0.03)] backdrop-blur-xl dark:border-[var(--line)] dark:bg-[var(--bg)]/70">
-        <div className="flex h-16 w-full items-center justify-between px-6 md:px-10">
-          <Link
-            href="/home"
-            className="bg-gradient-to-r from-[#004e99] to-[#00668a] bg-clip-text text-2xl font-semibold tracking-tight text-transparent"
-          >
-            UniSin
-          </Link>
+        <div className="flex h-16 w-full items-center justify-between px-4 md:px-10">
+          <BrandMark href="/home" size="lg" />
           <ThemeToggle />
         </div>
       </header>
@@ -106,8 +101,8 @@ export function InterestsOnboarding() {
         <div className="pointer-events-none absolute right-[-10%] bottom-[-10%] h-[60%] w-[60%] rounded-full bg-indigo-400/20 blur-[150px] mix-blend-multiply dark:mix-blend-normal" />
         <div className="pointer-events-none absolute top-[30%] right-[10%] h-[40%] w-[30%] rounded-full bg-purple-400/20 blur-[100px] mix-blend-multiply dark:mix-blend-normal" />
 
-        <div className="relative z-10 mx-auto mt-6 flex w-full max-w-[1000px] flex-1 flex-col items-center px-4 py-12 md:px-10">
-          <div className="relative flex w-full flex-col items-center overflow-hidden rounded-3xl border border-white/80 bg-white/60 p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04),inset_0_1px_2px_rgba(255,255,255,0.8)] backdrop-blur-2xl md:p-12 dark:border-[var(--line)] dark:bg-[var(--card)]/80">
+        <div className="relative z-10 mx-auto mt-6 flex w-full max-w-[1000px] flex-1 flex-col items-center px-4 py-8 md:px-10 md:py-12">
+          <div className="relative flex w-full flex-col items-center overflow-hidden rounded-3xl border border-white/80 bg-white/60 p-4 shadow-[0_8px_32px_rgba(0,0,0,0.04),inset_0_1px_2px_rgba(255,255,255,0.8)] backdrop-blur-2xl md:p-12 dark:border-[var(--line)] dark:bg-[var(--card)]/80">
             <div className="pointer-events-none absolute top-0 right-0 h-64 w-64 rounded-bl-full bg-gradient-to-bl from-white/40 to-transparent" />
             <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-48 rounded-tr-full bg-gradient-to-tr from-white/40 to-transparent" />
 
@@ -115,7 +110,7 @@ export function InterestsOnboarding() {
               <div className="mb-6 flex h-14 w-14 rotate-3 items-center justify-center rounded-2xl border border-white/60 bg-gradient-to-br from-[#e0f2fe] to-white text-[var(--blue)] shadow-[0_4px_12px_rgba(10,102,194,0.15)] dark:from-[var(--blue-soft)] dark:to-[var(--card)]">
                 <InterestsIcon />
               </div>
-              <h1 className="mb-4 bg-gradient-to-r from-[#004e99] via-[#00668a] to-purple-600 bg-clip-text pb-1 text-4xl font-bold tracking-tight text-transparent md:text-5xl md:leading-[56px]">
+              <h1 className="mb-4 bg-gradient-to-r from-[#004e99] via-[#00668a] to-purple-600 bg-clip-text pb-1 text-3xl font-bold tracking-tight text-transparent md:text-5xl md:leading-[56px]">
                 Customize your interest areas
               </h1>
               <p className="max-w-xl text-lg leading-relaxed text-[var(--muted)]">
@@ -125,7 +120,8 @@ export function InterestsOnboarding() {
             </div>
 
             <div className="relative z-10 mb-12 w-full max-w-md">
-              <div className="flex items-center rounded-xl border border-white bg-white/80 p-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.05)] backdrop-blur-md transition focus-within:-translate-y-0.5 dark:border-[var(--line)] dark:bg-[var(--card)]">
+              <div className="flex w-full flex-col gap-2 rounded-xl border border-white bg-white/80 p-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.05)] backdrop-blur-md dark:border-[var(--line)] dark:bg-[var(--card)] sm:flex-row sm:items-center">
+                <div className="flex min-w-0 flex-1 items-center">
                 <span className="ml-2 text-[var(--muted)]">
                   <SearchIcon />
                 </span>
@@ -139,12 +135,13 @@ export function InterestsOnboarding() {
                     }
                   }}
                   placeholder="Enter your own topic..."
-                  className="flex-1 border-none bg-transparent px-3 py-2 text-base outline-none placeholder:text-[#727783]"
+                  className="min-w-0 flex-1 border-none bg-transparent px-3 py-2 text-base outline-none placeholder:text-[#727783]"
                 />
+                </div>
                 <button
                   type="button"
                   onClick={addCustom}
-                  className="rounded-lg bg-gradient-to-r from-[#004e99] to-[#00668a] px-6 py-2 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(10,102,194,0.3)] hover:from-[#005eb5] hover:to-[#004e99]"
+                  className="w-full rounded-lg bg-gradient-to-r from-[#004e99] to-[#00668a] px-6 py-2 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(10,102,194,0.3)] hover:from-[#005eb5] hover:to-[#004e99] sm:w-auto"
                 >
                   Submit
                 </button>
@@ -178,11 +175,11 @@ export function InterestsOnboarding() {
             <p className="mb-8 text-xs font-bold tracking-wider text-[#727783] uppercase">
               {selected.length} selected · 3 minimum, 8 maximum
             </p>
-            <div className="flex w-full max-w-md items-center justify-between rounded-full border border-white bg-white/80 p-2 shadow-[0_4px_16px_rgba(0,0,0,0.05)] backdrop-blur-md dark:border-[var(--line)] dark:bg-[var(--card)]">
+            <div className="flex w-full flex-col gap-2 rounded-2xl border border-white bg-white/80 p-2 shadow-[0_4px_16px_rgba(0,0,0,0.05)] backdrop-blur-md sm:max-w-md sm:flex-row sm:items-center sm:justify-between sm:rounded-full dark:border-[var(--line)] dark:bg-[var(--card)]">
               <button
                 type="button"
                 onClick={() => void skip()}
-                className="rounded-full px-6 py-2 text-sm font-semibold text-[var(--muted)] hover:bg-[#eaeef2]/50 hover:text-[var(--blue)]"
+                className="w-full rounded-full px-6 py-3 text-sm font-semibold text-[var(--muted)] hover:bg-[#eaeef2]/50 hover:text-[var(--blue)] sm:w-auto sm:py-2"
               >
                 Skip for now
               </button>
@@ -190,7 +187,7 @@ export function InterestsOnboarding() {
                 type="button"
                 disabled={saving}
                 onClick={() => void next()}
-                className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[#004e99] to-[#00668a] px-8 py-3 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(10,102,194,0.3)] transition hover:-translate-y-1 disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#004e99] to-[#00668a] px-8 py-3 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(10,102,194,0.3)] transition hover:-translate-y-1 disabled:opacity-50 sm:w-auto"
               >
                 {edit ? "Save" : "Next Step"}
                 <ArrowIcon />

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const isDev = process.env.NODE_ENV === "development";
+import { BrandWord } from "@/components/BrandMark";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -19,11 +19,12 @@ export default function LoginPage() {
 
   const googleDown = !config.google;
   const linkedinDown = !config.linkedin;
+  const isDev = process.env.NODE_ENV !== "production";
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-12">
       <div className="card w-full max-w-md p-8 shadow-sm">
-        <p className="text-sm font-medium text-[var(--blue)]">UniSin</p>
+        <BrandWord size="sm" />
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">Sign in</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
           Continue with Google or LinkedIn. We never see your password.

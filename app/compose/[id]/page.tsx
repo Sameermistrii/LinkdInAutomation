@@ -24,7 +24,8 @@ export default async function EditComposePage({
 
   return (
     <AppShell name={ctx.name || ctx.session!.name} photoUrl={ctx.photoUrl || ""} connected={ctx.connected}>
-      <h1 className="mb-8 text-3xl font-semibold tracking-tight">Edit post</h1>
+      <div className="px-4 py-6 md:px-8">
+      <h1 className="mb-8 text-2xl font-semibold tracking-tight sm:text-3xl">Edit post</h1>
       <Composer
         initial={{
           id: post.id,
@@ -44,6 +45,7 @@ export default async function EditComposePage({
         }}
         organizations={organizations}
       />
+      </div>
     </AppShell>
   );
 }

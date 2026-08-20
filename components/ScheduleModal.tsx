@@ -6,6 +6,7 @@ import {
   rulesFromTemplate,
   templateMatches,
 } from "@/lib/schedule-templates";
+import { dateKey, timeFromDate } from "@/lib/datetime";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const DAY_DOTS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -40,10 +41,8 @@ export function ScheduleModal({
       setHint("");
       setFocusWeekday(null);
       const n = new Date(Date.now() + 2 * 60 * 1000);
-      setOneOffDate(
-        `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`,
-      );
-      setOneOffTime(`${String(n.getHours()).padStart(2, "0")}:${String(n.getMinutes()).padStart(2, "0")}`);
+      setOneOffDate(dateKey(n));
+      setOneOffTime(timeFromDate(n));
     }
   }, [open, rules]);
 

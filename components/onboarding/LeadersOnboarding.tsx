@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { BrandMark } from "@/components/BrandMark";
 import { parseLinkedInProfileUrl } from "@/lib/thought-leaders";
 
 type Leader = {
@@ -108,10 +108,8 @@ export function LeadersOnboarding() {
   return (
     <div className="relative min-h-screen bg-[#f6fafe] text-[var(--ink)] dark:bg-[var(--bg)]">
       <header className="fixed top-0 z-50 w-full bg-[#f6fafe]/80 shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl dark:bg-[var(--bg)]/80">
-        <div className="flex h-16 w-full items-center justify-between px-6 md:px-10">
-          <Link href="/home" className="text-2xl font-semibold tracking-tight text-[#004e99]">
-            UniSin
-          </Link>
+        <div className="flex h-16 w-full items-center justify-between px-4 md:px-10">
+          <BrandMark href="/home" size="lg" />
           <ThemeToggle />
         </div>
       </header>
@@ -129,12 +127,12 @@ export function LeadersOnboarding() {
         />
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-4 py-10 pb-16 md:px-10">
-          <div className="flex flex-col gap-8 rounded-[32px] bg-white/60 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] backdrop-blur-xl md:p-10 dark:bg-[var(--card)]/70">
+          <div className="flex flex-col gap-8 rounded-[32px] bg-white/60 p-4 shadow-[0_8px_32px_rgba(0,0,0,0.08)] backdrop-blur-xl md:p-10 dark:bg-[var(--card)]/70">
             <div className="mx-auto flex max-w-2xl flex-col items-center gap-3 text-center">
               <div className="flex h-14 w-14 -rotate-6 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#004e99] to-[#00668a] text-white shadow-lg">
                 <BulbIcon />
               </div>
-              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Discover industry thought leaders</h1>
+              <h1 className="text-2xl font-bold tracking-tight md:text-4xl">Discover industry thought leaders</h1>
               <p className="text-base leading-relaxed text-[var(--muted)]">
                 Select 2–10 people who shape conversations in your field. These are bookmarks for
                 inspiration — we cannot follow them for you on LinkedIn.
@@ -162,7 +160,7 @@ export function LeadersOnboarding() {
               <button
                 type="button"
                 onClick={addUrl}
-                className="flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#004e99] px-8 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(10,102,194,0.3)] hover:bg-[#005eb5]"
+                className="flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#004e99] px-8 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(10,102,194,0.3)] hover:bg-[#005eb5]"
               >
                 <PlusIcon />
                 Add Profile

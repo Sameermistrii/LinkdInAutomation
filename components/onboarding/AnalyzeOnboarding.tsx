@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { BrandMark } from "@/components/BrandMark";
 
 const STEPS = [
   "Analyzing your profile",
@@ -59,10 +59,8 @@ export function AnalyzeOnboarding() {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#f6fafe] text-[var(--ink)] dark:bg-[var(--bg)]">
       <header className="fixed top-0 z-50 w-full bg-[#f6fafe]/80 shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl dark:bg-[var(--bg)]/80">
-        <div className="flex h-16 w-full items-center justify-between px-6 md:px-10">
-          <Link href="/home" className="text-2xl font-semibold tracking-tight text-[#004e99]">
-            UniSin
-          </Link>
+        <div className="flex h-16 w-full items-center justify-between px-4 md:px-10">
+          <BrandMark href="/home" size="lg" />
           <ThemeToggle />
         </div>
       </header>
@@ -72,11 +70,11 @@ export function AnalyzeOnboarding() {
           <div className="pointer-events-none absolute top-[-10%] left-[-10%] h-[40vw] w-[40vw] animate-pulse rounded-full bg-[#005eb5] opacity-20 blur-[80px]" />
           <div className="pointer-events-none absolute right-[-10%] bottom-[-10%] h-[50vw] w-[50vw] rounded-full bg-[#00594f] opacity-20 blur-[100px]" />
 
-          <div className="relative z-10 flex w-full max-w-[700px] flex-col items-center rounded-[32px] bg-white/60 p-8 text-center shadow-xl shadow-[#0a66c2]/10 backdrop-blur-2xl md:p-12 dark:bg-[var(--card)]/70">
+          <div className="relative z-10 flex w-full max-w-[700px] flex-col items-center rounded-[32px] bg-white/60 p-4 text-center shadow-xl shadow-[#0a66c2]/10 backdrop-blur-2xl md:p-12 dark:bg-[var(--card)]/70">
             <div className="mb-6 flex h-16 w-16 -rotate-12 items-center justify-center rounded-full bg-[#0a66c2] text-white shadow-md shadow-[#0a66c2]/20">
               <SparkleIcon />
             </div>
-            <h1 className="mb-2 text-4xl font-bold tracking-tight md:text-5xl md:leading-[56px]">
+            <h1 className="mb-2 text-3xl font-bold tracking-tight md:text-5xl md:leading-[56px]">
               Building your unique persona
             </h1>
             <p className="mx-auto mb-8 max-w-[480px] text-lg leading-relaxed text-[var(--muted)]">

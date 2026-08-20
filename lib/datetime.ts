@@ -10,20 +10,6 @@ export function formatTimeLabel(time: string) {
   return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 }
 
-export function formatDateHeading(date: Date) {
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-export function startOfDay(date: Date) {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
 export function dateKey(date: Date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -44,6 +30,7 @@ export type Slot = {
   extra?: boolean;
 };
 
+// Recurring weekday times + extra dates, minus past times and skipped days.
 export function generateUpcomingSlots(
   rules: { weekday: number; time: string }[],
   days = 14,

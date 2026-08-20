@@ -17,6 +17,7 @@ function secret() {
   return process.env.SESSION_SECRET || "local-dev-session-secret";
 }
 
+// HMAC cookie: payload.base64url + "." + signature
 function encode(payload: SessionUser) {
   const body = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
   const sig = createHmac("sha256", secret()).update(body).digest("base64url");
@@ -69,5 +70,3 @@ export async function requireUser() {
   }
   return { session, error: null };
 }
-
-export { COOKIE as SESSION_COOKIE };

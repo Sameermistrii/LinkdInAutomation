@@ -1,29 +1,14 @@
 import Link from "next/link";
+import { LandingHeader } from "./LandingHeader";
+import { BrandMark, BrandWord } from "./BrandMark";
 
 export function Landing() {
   return (
     <div className="bg-[#f0f7fd] dark:bg-[var(--bg)]">
-      <header className="fixed top-0 z-50 w-full border-b border-[var(--line)]/60 bg-[var(--card)]/80 backdrop-blur-md">
-        <div className="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-6 md:px-10">
-          <Link href="/" className="text-xl font-semibold tracking-tight text-[var(--blue)]">
-            UniSin
-          </Link>
-          <nav className="flex items-center gap-6">
-            <Link href="/login" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--blue)]">
-              Sign in
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-full bg-[var(--blue)] px-5 py-2 text-sm font-medium text-white shadow-lg shadow-[var(--blue)]/20 hover:opacity-95"
-            >
-              Get started
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <LandingHeader />
 
       <main>
-        <section className="relative flex min-h-screen items-center overflow-hidden px-6 pt-20 md:px-10">
+        <section className="relative flex min-h-screen items-center overflow-hidden px-4 pt-16 sm:px-6 sm:pt-20 md:px-10">
           <div className="hero-blob pointer-events-none absolute top-[-10%] right-[-5%] -z-10 h-[600px] w-[600px] bg-gradient-to-br from-[var(--blue)]/10 to-transparent blur-[60px]" />
           <div
             className="hero-blob pointer-events-none absolute bottom-[-20%] left-[-10%] -z-10 h-[700px] w-[800px] bg-gradient-to-tr from-sky-200/40 to-[var(--blue-soft)] blur-[80px] dark:from-[var(--blue)]/10"
@@ -39,10 +24,11 @@ export function Landing() {
           <div className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-col items-start text-left">
             <div className="relative mb-8 inline-flex items-center overflow-hidden rounded-full border border-white/80 bg-white/60 px-4 py-2 text-sm font-medium text-[var(--blue)] shadow-sm backdrop-blur-md dark:border-[var(--line)] dark:bg-[var(--card)]/70">
               <div className="hero-shimmer absolute inset-0" />
-              <span className="relative z-10 mr-2">✨</span>
-              <span className="relative z-10">UniSin</span>
+              <span className="relative z-10">
+                <BrandWord size="sm" />
+              </span>
             </div>
-            <h1 className="max-w-4xl text-4xl font-bold tracking-tight text-[var(--ink)] sm:text-5xl md:text-[56px] md:leading-[64px]">
+            <h1 className="max-w-4xl text-3xl font-bold tracking-tight text-[var(--ink)] sm:text-5xl md:text-[56px] md:leading-[64px]">
               Schedule <span className="text-[var(--blue)]">LinkedIn posts</span> without the hassle.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-[var(--muted)] md:text-xl">
@@ -70,12 +56,10 @@ export function Landing() {
         <ProductPreview />
       </main>
 
-      <footer className="border-t border-[var(--line)] bg-[#f6fafe] px-6 py-10 md:px-10 dark:bg-[var(--bg)]">
+      <footer className="border-t border-[var(--line)] bg-[#f6fafe] px-4 py-10 md:px-10 dark:bg-[var(--bg)]">
         <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <Link href="/" className="text-lg font-semibold tracking-tight text-[var(--blue)]">
-              UniSin
-            </Link>
+            <BrandMark href="/" size="sm" />
             <nav className="flex flex-wrap justify-center gap-6 text-sm font-medium text-[var(--muted)]">
               <a href="#how" className="hover:text-[var(--blue)]">
                 How it works
@@ -124,7 +108,7 @@ function HowItWorks() {
   return (
     <section
       id="how"
-      className="relative flex min-h-screen scroll-mt-20 flex-col justify-center overflow-hidden border-t border-[var(--line)] bg-[#f6fafe] px-6 py-24 md:px-10 dark:bg-[var(--bg)]"
+      className="relative flex min-h-screen scroll-mt-20 flex-col justify-center overflow-hidden border-t border-[var(--line)] bg-[#f6fafe] px-4 py-16 sm:px-6 md:px-10 md:py-24 dark:bg-[var(--bg)]"
     >
       <div className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-[var(--blue)]/10 blur-3xl" />
       <div className="pointer-events-none absolute top-20 -right-20 h-80 w-80 rounded-full bg-[var(--blue-soft)] blur-3xl" />
@@ -159,7 +143,7 @@ function ProductPreview() {
   return (
     <section
       id="preview"
-      className="relative flex min-h-screen scroll-mt-20 flex-col justify-center overflow-hidden border-t border-[var(--line)] bg-gradient-to-br from-[#f8fafc] via-[#e0f2fe]/40 to-[#eff6ff] px-6 py-24 md:px-10 dark:from-[var(--bg)] dark:via-[var(--bg)] dark:to-[var(--card)]"
+      className="relative flex min-h-screen scroll-mt-20 flex-col justify-center overflow-hidden border-t border-[var(--line)] bg-gradient-to-br from-[#f8fafc] via-[#e0f2fe]/40 to-[#eff6ff] px-4 py-16 sm:px-6 md:px-10 md:py-24 dark:from-[var(--bg)] dark:via-[var(--bg)] dark:to-[var(--card)]"
     >
       <div className="pointer-events-none absolute top-[-10%] left-[-10%] h-[500px] w-[500px] rounded-full bg-[var(--blue)]/10 blur-[80px]" />
       <div className="pointer-events-none absolute right-[-10%] bottom-[-20%] h-[600px] w-[600px] rounded-full bg-sky-200/30 blur-[100px]" />

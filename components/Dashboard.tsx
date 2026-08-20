@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Header } from "@/components/Header";
 import { QueueBoard, type QueueSlot } from "@/components/QueueBoard";
 import { ScheduleModal } from "@/components/ScheduleModal";
 import { StatusTabs, type TabKey } from "@/components/StatusTabs";
@@ -64,12 +63,14 @@ export function Dashboard({ initial }: { initial: Initial }) {
       ]);
       const loaded: Post[] = postsRes.posts ?? [];
       setPosts(loaded);
-      setCounts({
-        queued: loaded.filter((p) => p.status === "queued").length,
-        published: loaded.filter((p) => p.status === "published").length,
-        draft: loaded.filter((p) => p.status === "draft").length,
-        error: loaded.filter((p) => p.status === "error").length,
-      });
+      setCounts(
+        postsRes.counts ?? {
+          queued: loaded.filter((p) => p.status === "queued").length,
+          published: loaded.filter((p) => p.status === "published").length,
+          draft: loaded.filter((p) => p.status === "draft").length,
+          error: loaded.filter((p) => p.status === "error").length,
+        },
+      );
       setSlots(slotsRes.slots ?? []);
       setRules(scheduleRes.rules ?? []);
       setConnected(Boolean(accountRes.connected));
@@ -157,26 +158,20 @@ export function Dashboard({ initial }: { initial: Initial }) {
   const showQueue = connected;
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
-      <Header
-        title="My posts."
-        subtitle={subtitle}
-        connected={connected}
-        name={account?.name || sessionName}
-        photoUrl={account?.photoUrl || sessionPhoto}
-        compact
-      />
+    <div className="flex flex-col gap-8 px-4 py-6 md:px-8 md:py-12">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold tracking-tight md:text-5xl">My posts.</h1>
+        <p className="text-lg text-[var(--muted)]">{subtitle}</p>
+      </div>
 
       {notice ? (
-        <div className="mb-4 rounded-xl border border-[var(--line)] bg-[var(--card)] px-4 py-3 text-sm">
-          {notice}
-        </div>
+        <div className="rounded-xl bg-white px-4 py-3 text-sm shadow-sm dark:bg-[var(--card)]">{notice}</div>
       ) : null}
 
       {!ready ? (
-        <div className="card h-40 animate-pulse border-[var(--line)]" />
+        <div className="h-40 animate-pulse rounded-xl bg-white dark:bg-[var(--card)]" />
       ) : !showQueue ? (
-        <div className="card p-8">
+        <div className="rounded-xl bg-white p-8 shadow-sm dark:bg-[var(--card)]">
           <p className="mb-4 max-w-xl text-[var(--muted)]">
             Connect LinkedIn once so we can publish to your profile or Company Page. Signing in with
             Google only opens your dashboard.
@@ -190,30 +185,21 @@ export function Dashboard({ initial }: { initial: Initial }) {
         </div>
       ) : (
         <>
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
             <StatusTabs active={tab} counts={counts} onChange={setTab} />
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto">
               <button
                 type="button"
                 onClick={() => setScheduleOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card)] px-4 py-2 text-sm"
+                className="w-full rounded-lg border border-[#004e99]/20 bg-white px-4 py-2 text-center text-sm font-semibold text-[#004e99] hover:bg-[#eff6ff] sm:w-auto dark:bg-[var(--card)]"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                </svg>
                 Edit post schedule
               </button>
               <Link
                 href="/compose"
-                className="rounded-full border border-[var(--line)] px-4 py-2 text-sm"
+                className="inline-flex w-full items-center justify-center gap-1 rounded-lg bg-[#004e99] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#005eb5] sm:w-auto"
               >
-                Post now
-              </Link>
-              <Link
-                href="/compose"
-                className="rounded-full bg-[var(--blue)] px-4 py-2 text-sm font-medium text-white"
-              >
+                <span className="text-lg leading-none">+</span>
                 New post
               </Link>
             </div>
@@ -249,13 +235,13 @@ export function Dashboard({ initial }: { initial: Initial }) {
 
       <button
         type="button"
-        className="fixed right-6 bottom-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--blue)] text-white shadow-lg"
+        className="fixed right-4 bottom-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#004e99] text-white shadow-lg hover:scale-105 lg:right-8 lg:bottom-8"
         title="Help"
         onClick={() =>
           setNotice("Add posts to your time slots. They publish automatically when a slot is due.")
         }
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
           <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
         </svg>
       </button>
@@ -294,7 +280,7 @@ export function Dashboard({ initial }: { initial: Initial }) {
           setNotice("Day added. Put a post in that slot with Add to queue.");
         }}
       />
-    </main>
+    </div>
   );
 }
 
@@ -310,16 +296,17 @@ function PostList({
   emptyText?: string;
 }) {
   if (!posts.length) {
-    return <div className="card p-8 text-[var(--muted)]">{emptyText}</div>;
+    return <div className="rounded-xl bg-white p-8 text-[var(--muted)] shadow-sm dark:bg-[var(--card)]">{emptyText}</div>;
   }
   return (
     <div className="space-y-3">
       {posts.map((post) => (
-        <div key={post.id} className="card flex items-center gap-4 px-5 py-4">
+        <div key={post.id} className="flex flex-col gap-3 rounded-xl bg-white px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:gap-4 sm:px-5 dark:bg-[var(--card)]">
           <p className="min-w-0 flex-1 truncate">{post.body || "Untitled post"}</p>
           {post.errorMessage ? (
-            <span className="max-w-xs truncate text-xs text-red-600">{post.errorMessage}</span>
+            <span className="max-w-full truncate text-xs text-red-600 sm:max-w-xs">{post.errorMessage}</span>
           ) : null}
+          <div className="flex flex-wrap gap-3">
           <Link href={`/compose/${post.id}`} className="text-sm text-[var(--blue)]">
             Edit
           </Link>
@@ -331,6 +318,7 @@ function PostList({
           <button type="button" className="text-sm text-[var(--muted)]" onClick={() => onDelete(post.id)}>
             Delete
           </button>
+          </div>
         </div>
       ))}
     </div>

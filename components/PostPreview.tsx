@@ -28,7 +28,7 @@ export function PostPreview({
 
   return (
     <div className="flex flex-col items-center">
-      <div className="mb-4 flex items-center gap-1 rounded-xl bg-[var(--card)] p-1">
+      <div className="mb-4 flex flex-wrap items-center justify-center gap-1 rounded-xl bg-[var(--card)] p-1">
         <DeviceBtn active={device === "mobile"} onClick={() => onDevice("mobile")} label="Phone">
           <path d="M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
         </DeviceBtn>

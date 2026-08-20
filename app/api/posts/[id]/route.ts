@@ -11,15 +11,6 @@ async function ownedPost(userId: string, id: number) {
   return prisma.post.findFirst({ where: { id, userId } });
 }
 
-export async function GET(_req: Request, ctx: Ctx) {
-  const { session, error } = await requireUser();
-  if (error || !session) return error!;
-  const { id } = await ctx.params;
-  const post = await ownedPost(session.userId, Number(id));
-  if (!post) return jsonError("Not found", 404);
-  return NextResponse.json({ post });
-}
-
 export async function PATCH(request: Request, ctx: Ctx) {
   const { session, error } = await requireUser();
   if (error || !session) return error!;

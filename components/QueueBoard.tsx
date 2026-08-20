@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { formatDateHeading, formatTimeLabel, dateKey } from "@/lib/datetime";
+import { formatTimeLabel, dateKey } from "@/lib/datetime";
 
 export type QueuePost = {
   id: number;
@@ -38,50 +38,56 @@ export function QueueBoard({
 
   if (!groups.length) {
     return (
-      <div className="card p-8 text-[var(--muted)]">
+      <div className="rounded-xl bg-white p-8 text-[var(--muted)] shadow-sm dark:bg-[var(--card)]">
         No upcoming slots. Open Edit post schedule and pick a template.
       </div>
     );
   }
 
   return (
-    <section>
-      <div className="mb-4 flex items-end justify-between gap-3">
-        <h2 className="text-xl font-semibold">Scheduled</h2>
+    <section className="flex flex-col gap-8">
+      <div>
+        <div className="mb-4 flex items-center gap-6">
+          <h2 className="whitespace-nowrap text-2xl font-semibold">Scheduled</h2>
+          <div className="h-px flex-1 bg-[#dfe3e7] dark:bg-[var(--line)]" />
+        </div>
         <p className="text-sm text-[var(--muted)]">Empty cards are open slots — add a post when you are ready.</p>
       </div>
-      <div className="space-y-5">
-        {groups.map((group) => (
-          <div key={group.key} className="card overflow-hidden">
-            <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] bg-[var(--blue-soft)]/50 px-6 py-3.5">
-              <div>
-                <p className="text-lg font-medium">{group.label}</p>
-                <p className="text-xs text-[var(--muted)]">
-                  {group.slots.filter((s) => s.post).length} of {group.slots.length} slots filled
-                </p>
+      <div className="flex flex-col gap-8">
+        {groups.map((group) => {
+          const filled = group.slots.filter((s) => s.post).length;
+          return (
+            <div key={group.key} className="rounded-xl bg-white p-4 shadow-sm md:p-6 dark:bg-[var(--card)]">
+              <div className="mb-6 flex flex-col gap-3 border-b border-[#dfe3e7] pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-[var(--line)]">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h3 className="text-xl font-semibold">{group.label}</h3>
+                  <span className="rounded bg-[#e4e9ed] px-2 py-1 text-xs font-bold text-[var(--muted)] dark:bg-[var(--line)]">
+                    {filled} of {group.slots.length} slots filled
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="self-start text-sm font-semibold text-[#004e99] hover:underline sm:self-auto"
+                  onClick={() => onSkipDay(group.date)}
+                >
+                  Skip this day
+                </button>
               </div>
-              <button
-                type="button"
-                className="text-sm text-[var(--muted)]"
-                onClick={() => onSkipDay(group.date)}
-              >
-                Skip this day
-              </button>
+              <div className="flex flex-col gap-6">
+                {group.slots.map((slot) => (
+                  <SlotRow
+                    key={slot.at}
+                    slot={slot}
+                    name={name}
+                    photoUrl={photoUrl}
+                    onDelete={onDelete}
+                    onPostNow={onPostNow}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="divide-y divide-[var(--line)]">
-              {group.slots.map((slot) => (
-                <SlotRow
-                  key={slot.at}
-                  slot={slot}
-                  name={name}
-                  photoUrl={photoUrl}
-                  onDelete={onDelete}
-                  onPostNow={onPostNow}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
@@ -100,52 +106,64 @@ function SlotRow({
   onDelete: (id: number) => void;
   onPostNow: (id: number) => void;
 }) {
-  const initial = (name || "You").slice(0, 1).toUpperCase();
+  const initial = initials(name || "You");
+  const dayLabel = new Date(slot.at).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 
   return (
-    <div className="flex items-stretch gap-4 px-5 py-4">
-      <div className="flex w-24 shrink-0 flex-col items-start justify-center">
-        <span className="rounded-full bg-[var(--blue-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--blue)]">
-          {formatTimeLabel(slot.time)}
-        </span>
-        {slot.extra ? <span className="mt-1 text-[10px] uppercase tracking-wide text-[var(--muted)]">Extra</span> : null}
+    <div className="flex flex-col gap-2 md:flex-row md:gap-6">
+      <div className="w-auto shrink-0 pt-0 text-sm font-semibold text-[var(--muted)] md:w-24 md:pt-4">
+        <div>{formatTimeLabel(slot.time)}</div>
+        {slot.extra ? <div className="mt-1 text-[10px] font-bold tracking-wide uppercase">Extra</div> : null}
       </div>
 
       {slot.post ? (
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <Avatar photoUrl={photoUrl} initial={initial} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium">{name || "You"}</p>
-            <p className="mt-0.5 line-clamp-2 text-sm text-[var(--muted)]">
-              {slot.post.body || "Untitled post"}
-            </p>
+        <div className="relative min-h-[140px] flex-1 overflow-hidden rounded-lg bg-[#f6fafe] p-4 shadow-sm md:p-6 dark:bg-[var(--bg)]">
+          <div className="absolute top-0 left-0 h-full w-1 bg-[#00668a]" />
+          <div className="flex gap-4">
+            <Avatar photoUrl={photoUrl} initial={initial} />
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-bold">{(name || "You").toUpperCase()}</span>
+                <span className="flex items-center gap-1 rounded bg-[#eaeef2] px-2 py-1 text-xs font-bold text-[var(--muted)] dark:bg-[var(--line)]">
+                  {dayLabel}
+                </span>
+              </div>
+              <p className="line-clamp-2 text-base text-[var(--muted)]">{slot.post.body || "Untitled post"}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-3 border-t border-[#dfe3e7] pt-2 dark:border-[var(--line)]">
+                <Link href={`/compose/${slot.post.id}`} className="text-xs font-bold text-[var(--muted)] hover:text-[#004e99]">
+                  Edit
+                </Link>
+                <span className="h-1 w-1 rounded-full bg-[#dfe3e7]" />
+                <button
+                  type="button"
+                  className="text-xs font-bold text-[var(--muted)] hover:text-[#004e99]"
+                  onClick={() => onPostNow(slot.post!.id)}
+                >
+                  Post now
+                </button>
+                <span className="h-1 w-1 rounded-full bg-[#dfe3e7]" />
+                <button
+                  type="button"
+                  className="text-xs font-bold text-red-600 hover:text-red-500"
+                  onClick={() => onDelete(slot.post!.id)}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
           </div>
-          <Link href={`/compose/${slot.post.id}`} className="shrink-0 text-sm text-[var(--blue)]">
-            Edit
-          </Link>
-          <button type="button" className="shrink-0 text-sm text-[var(--blue)]" onClick={() => onPostNow(slot.post!.id)}>
-            Post now
-          </button>
-          <button type="button" className="shrink-0 text-sm text-[var(--muted)]" onClick={() => onDelete(slot.post!.id)}>
-            Remove
-          </button>
         </div>
       ) : (
         <Link
           href={`/compose?slot=${encodeURIComponent(slot.at)}`}
-          className="group flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-dashed border-[var(--line)] bg-[var(--bg)]/60 px-3 py-2.5 transition hover:border-[var(--blue)] hover:bg-[var(--blue-soft)]/40"
+          className="group flex min-h-[140px] flex-1 cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-[#c1c6d4]/50 bg-[#f0f4f8] p-6 transition hover:bg-[#e4e9ed] dark:border-[var(--line)] dark:bg-[var(--bg)]"
         >
-          <Avatar photoUrl={photoUrl} initial={initial} muted />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-[var(--muted)] group-hover:text-[var(--ink)]">
-              Add a LinkedIn post
-            </p>
-            <div className="mt-1.5 space-y-1.5">
-              <div className="h-2 w-4/5 rounded-full bg-[var(--line)]" />
-              <div className="h-2 w-2/5 rounded-full bg-[var(--line)]" />
-            </div>
+          <div className="flex w-full max-w-sm flex-col items-center gap-2">
+            <div className="h-3 w-3/4 rounded bg-[#dfe3e7] dark:bg-[var(--line)]" />
+            <div className="h-3 w-1/2 rounded bg-[#dfe3e7] dark:bg-[var(--line)]" />
           </div>
-          <span className="shrink-0 rounded-full border border-[var(--line)] bg-[var(--card)] px-3 py-1.5 text-sm group-hover:border-[var(--blue)] group-hover:text-[var(--blue)]">
+          <div className="text-sm font-semibold text-[var(--muted)] group-hover:text-[#004e99]">Add a LinkedIn post</div>
+          <span className="rounded-full bg-white px-4 py-2 text-xs font-bold text-[#004e99] shadow-sm opacity-100 transition sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 dark:bg-[var(--card)]">
             + Add to queue
           </span>
         </Link>
@@ -154,33 +172,29 @@ function SlotRow({
   );
 }
 
-function Avatar({
-  photoUrl,
-  initial,
-  muted,
-}: {
-  photoUrl?: string;
-  initial: string;
-  muted?: boolean;
-}) {
+function Avatar({ photoUrl, initial }: { photoUrl?: string; initial: string }) {
   return (
-    <div
-      className={`h-11 w-11 shrink-0 overflow-hidden rounded-full border border-[var(--line)] ${
-        muted ? "opacity-70" : "bg-[var(--blue-soft)]"
-      }`}
-    >
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#0a66c2] text-sm font-bold text-[#dbe6ff]">
       {photoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={photoUrl} alt="" className="h-full w-full object-cover" />
       ) : (
-        <div className="flex h-full w-full items-center justify-center text-sm font-medium text-[var(--blue)]">
-          {initial}
-        </div>
+        initial
       )}
     </div>
   );
 }
 
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+// Bucket slots by local calendar day for the queue board.
 function groupByDay(slots: QueueSlot[]) {
   const map = new Map<string, QueueSlot[]>();
   for (const slot of slots) {
@@ -193,7 +207,7 @@ function groupByDay(slots: QueueSlot[]) {
   return [...map.entries()].map(([key, daySlots]) => ({
     key,
     date: dateKey(new Date(daySlots[0].at)),
-    label: formatDateHeading(new Date(daySlots[0].at)),
+    label: new Date(daySlots[0].at).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" }),
     slots: daySlots,
   }));
 }

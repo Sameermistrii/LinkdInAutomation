@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 
+// Same email from Google or LinkedIn maps to one user row.
 export async function upsertUser(input: {
   email: string;
   name: string;

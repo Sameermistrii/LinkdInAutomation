@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import { publishDuePosts } from "../lib/publish";
 
+// Local fallback when Vercel cron is not running.
 async function tick() {
   try {
     const results = await publishDuePosts();

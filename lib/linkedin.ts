@@ -313,10 +313,7 @@ export async function createPost(
     lifecycleState: "PUBLISHED",
     isReshareDisabledByAuthor: false,
   };
-  if (input.mediaUrn && input.mediaKind === "image") {
-    payload.content = { media: { id: input.mediaUrn } };
-  }
-  if (input.mediaUrn && input.mediaKind === "document") {
+  if (input.mediaUrn && input.mediaKind) {
     payload.content = { media: { id: input.mediaUrn } };
   }
 

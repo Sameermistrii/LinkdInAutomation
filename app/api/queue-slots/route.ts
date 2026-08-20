@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getQueueSlots } from "@/lib/schedule";
 import { requireUser } from "@/lib/session";
+import { timeFromDate } from "@/lib/datetime";
 
 export async function GET() {
   const { session, error } = await requireUser();
@@ -27,7 +28,7 @@ export async function GET() {
     if (filled.some((s) => new Date(s.at).getTime() === extra.at.getTime())) continue;
     filled.push({
       at: extra.at.toISOString(),
-      time: `${String(extra.at.getHours()).padStart(2, "0")}:${String(extra.at.getMinutes()).padStart(2, "0")}`,
+      time: timeFromDate(extra.at),
       weekday: extra.at.getDay(),
       extra: true,
       post: byTime.get(extra.at.getTime()) ?? null,

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN "personaBio" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "User" ADD COLUMN "companyBio" TEXT NOT NULL DEFAULT '';
