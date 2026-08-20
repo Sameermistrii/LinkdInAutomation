@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # UniSin
 
 Schedule LinkedIn posts through the **official LinkedIn API**. You write a post, drop it in a queue, and a worker publishes it at the slot you picked. No scraping.
