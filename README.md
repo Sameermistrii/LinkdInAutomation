@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # UniSin
 
 Schedule LinkedIn posts through the **official LinkedIn API**. You write a post, drop it in a queue, and a worker publishes it at the slot you picked. No scraping.
@@ -315,3 +316,6 @@ Same model as Buffer or Notion: platform secrets in env, user tokens in the data
 | `npx prisma generate` | Prisma client (`generated/prisma`) |
 
 Made with 💙 by [Sameer Mistri](https://github.com/Sameermistrii).
+=======
+# LinkdInAutomation
+>>>>>>> 032e7dc8f9ed1e25ba6cb7ad017f53c0d8ff3ae1
