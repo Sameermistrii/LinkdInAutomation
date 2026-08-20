@@ -7,7 +7,7 @@ import { timeFromDate } from "@/lib/datetime";
 export async function GET() {
   const { session, error } = await requireUser();
   if (error || !session) return error!;
-  const slots = await getQueueSlots(session.userId, 14);
+  const slots = await getQueueSlots(session.userId);
   const extras = await prisma.extraSlot.findMany({
     where: { userId: session.userId, at: { gt: new Date() } },
     orderBy: { at: "asc" },

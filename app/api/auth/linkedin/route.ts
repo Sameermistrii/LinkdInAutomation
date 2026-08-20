@@ -10,7 +10,7 @@ export async function GET(request: Request) {
       new URL("/login?error=Sign-in%20is%20temporarily%20unavailable", origin),
     );
   }
-  const includeOrg = new URL(request.url).searchParams.get("org") !== "0";
+  const includeOrg = new URL(request.url).searchParams.get("org") === "1";
   const state = crypto.randomUUID();
   const jar = await cookies();
   jar.set("li_oauth_state", state, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 600 });

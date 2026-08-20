@@ -38,7 +38,6 @@ export function Dashboard({ initial }: { initial: Initial }) {
     error: 0,
   });
   const [slots, setSlots] = useState<QueueSlot[]>([]);
-  const [rules, setRules] = useState<{ weekday: number; time: string }[]>([]);
   const [account, setAccount] = useState<Account | null>(
     initial.connected
       ? { name: initial.name, headline: initial.headline, photoUrl: initial.photoUrl }
@@ -49,15 +48,15 @@ export function Dashboard({ initial }: { initial: Initial }) {
   const [connected, setConnected] = useState(initial.connected);
   const [ready, setReady] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [scheduleEditAt, setScheduleEditAt] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   async function load() {
     try {
-      const [postsRes, slotsRes, scheduleRes, accountRes, meRes] = await Promise.all([
+      const [postsRes, slotsRes, accountRes, meRes] = await Promise.all([
         fetch("/api/posts").then((r) => r.json()),
         fetch("/api/queue-slots").then((r) => r.json()),
-        fetch("/api/schedule").then((r) => r.json()),
         fetch("/api/account").then((r) => r.json()),
         fetch("/api/auth/me").then((r) => r.json()),
       ]);
@@ -72,7 +71,6 @@ export function Dashboard({ initial }: { initial: Initial }) {
         },
       );
       setSlots(slotsRes.slots ?? []);
-      setRules(scheduleRes.rules ?? []);
       setConnected(Boolean(accountRes.connected));
       setAccount(accountRes.account);
       setSessionName(meRes.user?.name || accountRes.account?.name || initial.name);
@@ -190,10 +188,13 @@ export function Dashboard({ initial }: { initial: Initial }) {
             <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto">
               <button
                 type="button"
-                onClick={() => setScheduleOpen(true)}
+                onClick={() => {
+                  setScheduleEditAt(null);
+                  setScheduleOpen(true);
+                }}
                 className="w-full rounded-lg border border-[#004e99]/20 bg-white px-4 py-2 text-center text-sm font-semibold text-[#004e99] hover:bg-[#eff6ff] sm:w-auto dark:bg-[var(--card)]"
               >
-                Edit post schedule
+                Add schedule
               </button>
               <Link
                 href="/compose"
@@ -214,6 +215,10 @@ export function Dashboard({ initial }: { initial: Initial }) {
                 onDelete={(id) => void removePost(id)}
                 onSkipDay={(date) => void skipDay(date)}
                 onPostNow={(id) => void postNow(id)}
+                onEditSlot={(at) => {
+                  setScheduleEditAt(at);
+                  setScheduleOpen(true);
+                }}
               />
             ) : (
               <PostList
@@ -248,36 +253,21 @@ export function Dashboard({ initial }: { initial: Initial }) {
 
       <ScheduleModal
         open={scheduleOpen}
-        rules={rules}
-        onClose={() => setScheduleOpen(false)}
-        onSave={async (next) => {
-          const res = await fetch("/api/schedule", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ rules: next }),
-          });
-          const json = await res.json();
-          if (!res.ok) throw new Error(json.error || "Save failed");
-          setRules(json.rules);
-          await load();
+        initialAt={scheduleEditAt}
+        onClose={() => {
+          setScheduleOpen(false);
+          setScheduleEditAt(null);
         }}
-        onAddExtra={async (at) => {
+        onSubmit={async (at, from) => {
           const res = await fetch("/api/schedule", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(at ? { action: "extra", at } : { action: "extra", minutesFromNow: 2 }),
+            body: JSON.stringify(from ? { action: "move", from, at } : { action: "extra", at }),
           });
           const json = await res.json();
-          if (!res.ok) throw new Error(json.error || "Could not add slot");
-          if (json.weekday != null && json.time) {
-            setRules((prev) =>
-              prev.some((r) => r.weekday === json.weekday && r.time === json.time)
-                ? prev
-                : [...prev, { weekday: json.weekday, time: json.time }],
-            );
-          }
+          if (!res.ok) throw new Error(json.error || "Could not save schedule");
           await load();
-          setNotice("Day added. Put a post in that slot with Add to queue.");
+          setNotice(from ? "Schedule updated." : "Schedule added. Put a post in that slot when you are ready.");
         }}
       />
     </div>

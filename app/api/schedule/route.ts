@@ -21,8 +21,9 @@ export async function PUT(request: Request) {
   if (error || !session) return error!;
   const body = (await request.json()) as {
     rules?: { weekday: number; time: string }[];
-    action?: "extra" | "skip" | "unskip";
+    action?: "extra" | "skip" | "unskip" | "move";
     at?: string;
+    from?: string;
     date?: string;
     minutesFromNow?: number;
   };
@@ -42,13 +43,30 @@ export async function PUT(request: Request) {
       const message = err instanceof Error ? err.message : "Could not save extra slot";
       if (!/Unique constraint/i.test(message)) return jsonError(message);
     }
-    const exists = await prisma.scheduleRule.findFirst({
-      where: { userId: session.userId, weekday, time },
-    });
-    if (!exists) {
-      await prisma.scheduleRule.create({ data: { userId: session.userId, weekday, time } });
-    }
     return NextResponse.json({ ok: true, at: at.toISOString(), weekday, time });
+  }
+
+  if (body.action === "move" && body.from && body.at) {
+    const from = new Date(body.from);
+    const to = new Date(body.at);
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) {
+      return jsonError("Pick a valid date and time");
+    }
+    to.setSeconds(0, 0);
+    if (to.getTime() <= Date.now()) return jsonError("Pick a time in the future.");
+    const extra = await prisma.extraSlot.findFirst({
+      where: { userId: session.userId, at: from },
+    });
+    if (extra) {
+      await prisma.extraSlot.update({ where: { id: extra.id }, data: { at: to } });
+    } else {
+      await prisma.extraSlot.create({ data: { userId: session.userId, at: to } });
+    }
+    await prisma.post.updateMany({
+      where: { userId: session.userId, status: "queued", scheduledAt: from },
+      data: { scheduledAt: to },
+    });
+    return NextResponse.json({ ok: true, at: to.toISOString() });
   }
 
   if (body.action === "skip" && body.date) {
