@@ -1,8 +1,9 @@
+<
 # UniSin
 
-Schedule LinkedIn posts through the **official LinkedIn API**. You write a post, drop it in a queue, and a worker publishes it at the slot you picked. No scraping.
+Schedule LinkedIn Post. You write a post, drop it in a queue, and a worker publishes it at the slot you picked. No scrapig. 
 
-You (the developer) hold one Google app and one LinkedIn app. People who use your copy only sign in. They never see a client ID.
+TRY IT - https://www.unisin.in/
 
 ## What it does
 
