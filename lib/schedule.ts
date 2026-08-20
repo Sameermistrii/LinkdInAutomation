@@ -1,18 +1,7 @@
 import { prisma } from "./prisma";
-import { generateUpcomingSlots } from "./datetime";
+import { dateKey, timeFromDate } from "./datetime";
 
 export async function getScheduleRules(userId: string) {
-  const rules = await prisma.scheduleRule.findMany({
-    where: { userId },
-    orderBy: [{ weekday: "asc" }, { time: "asc" }],
-  });
-  if (rules.length) return rules;
-  const defaults = [];
-  for (const weekday of [1, 2, 3, 4, 5]) {
-    defaults.push({ userId, weekday, time: "09:00" });
-    defaults.push({ userId, weekday, time: "18:00" });
-  }
-  await prisma.scheduleRule.createMany({ data: defaults });
   return prisma.scheduleRule.findMany({
     where: { userId },
     orderBy: [{ weekday: "asc" }, { time: "asc" }],
@@ -38,23 +27,43 @@ export async function consumeExtraSlot(userId: string, at: Date | null) {
   });
 }
 
-export async function getQueueSlots(userId: string, days = 14) {
+export async function getQueueSlots(userId: string) {
   await prunePastExtras(userId);
-  const [rules, extras, skips] = await Promise.all([
-    getScheduleRules(userId),
-    prisma.extraSlot.findMany({ where: { userId, at: { gt: new Date() } } }),
+  const [extras, skips, queued] = await Promise.all([
+    prisma.extraSlot.findMany({ where: { userId, at: { gt: new Date() } }, orderBy: { at: "asc" } }),
     prisma.scheduleSkip.findMany({ where: { userId } }),
+    prisma.post.findMany({
+      where: { userId, status: "queued", scheduledAt: { gt: new Date() } },
+      select: { scheduledAt: true },
+    }),
   ]);
-  return generateUpcomingSlots(
-    rules,
-    days,
-    extras.map((e) => e.at),
-    skips.map((s) => s.date),
-  );
+  const skip = new Set(skips.map((s) => s.date));
+  const byTime = new Map<number, { at: Date; weekday: number; time: string; extra: boolean }>();
+  for (const e of extras) {
+    if (skip.has(dateKey(e.at))) continue;
+    byTime.set(e.at.getTime(), {
+      at: e.at,
+      weekday: e.at.getDay(),
+      time: timeFromDate(e.at),
+      extra: true,
+    });
+  }
+  for (const p of queued) {
+    const at = p.scheduledAt!;
+    if (skip.has(dateKey(at))) continue;
+    if (byTime.has(at.getTime())) continue;
+    byTime.set(at.getTime(), {
+      at,
+      weekday: at.getDay(),
+      time: timeFromDate(at),
+      extra: true,
+    });
+  }
+  return [...byTime.values()].sort((a, b) => a.at.getTime() - b.at.getTime());
 }
 
 export async function nextFreeSlot(userId: string, after?: Date) {
-  const slots = await getQueueSlots(userId, 60);
+  const slots = await getQueueSlots(userId);
   const taken = await prisma.post.findMany({
     where: { userId, status: "queued", scheduledAt: { not: null } },
     select: { scheduledAt: true },

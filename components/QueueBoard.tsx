@@ -26,6 +26,7 @@ export function QueueBoard({
   onDelete,
   onSkipDay,
   onPostNow,
+  onEditSlot,
 }: {
   slots: QueueSlot[];
   name?: string;
@@ -33,13 +34,14 @@ export function QueueBoard({
   onDelete: (id: number) => void;
   onSkipDay: (date: string) => void;
   onPostNow: (id: number) => void;
+  onEditSlot: (at: string) => void;
 }) {
   const groups = groupByDay(slots);
 
   if (!groups.length) {
     return (
       <div className="rounded-xl bg-white p-8 text-[var(--muted)] shadow-sm dark:bg-[var(--card)]">
-        No upcoming slots. Open Edit post schedule and pick a template.
+        No upcoming schedules. Click Add schedule and pick a date and time.
       </div>
     );
   }
@@ -51,7 +53,9 @@ export function QueueBoard({
           <h2 className="whitespace-nowrap text-2xl font-semibold">Scheduled</h2>
           <div className="h-px flex-1 bg-[#dfe3e7] dark:bg-[var(--line)]" />
         </div>
-        <p className="text-sm text-[var(--muted)]">Empty cards are open slots — add a post when you are ready.</p>
+        <p className="text-sm text-[var(--muted)]">
+          Click a date or a time to change it. Empty cards are open — add a post when you are ready.
+        </p>
       </div>
       <div className="flex flex-col gap-8">
         {groups.map((group) => {
@@ -60,7 +64,14 @@ export function QueueBoard({
             <div key={group.key} className="rounded-xl bg-white p-4 shadow-sm md:p-6 dark:bg-[var(--card)]">
               <div className="mb-6 flex flex-col gap-3 border-b border-[#dfe3e7] pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-[var(--line)]">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h3 className="text-xl font-semibold">{group.label}</h3>
+                  <button
+                    type="button"
+                    className="text-xl font-semibold hover:text-[#004e99] hover:underline"
+                    title="Edit this date"
+                    onClick={() => onEditSlot(group.slots[0].at)}
+                  >
+                    {group.label}
+                  </button>
                   <span className="rounded bg-[#e4e9ed] px-2 py-1 text-xs font-bold text-[var(--muted)] dark:bg-[var(--line)]">
                     {filled} of {group.slots.length} slots filled
                   </span>
@@ -82,6 +93,7 @@ export function QueueBoard({
                     photoUrl={photoUrl}
                     onDelete={onDelete}
                     onPostNow={onPostNow}
+                    onEditSlot={onEditSlot}
                   />
                 ))}
               </div>
@@ -99,21 +111,29 @@ function SlotRow({
   photoUrl,
   onDelete,
   onPostNow,
+  onEditSlot,
 }: {
   slot: QueueSlot;
   name?: string;
   photoUrl?: string;
   onDelete: (id: number) => void;
   onPostNow: (id: number) => void;
+  onEditSlot: (at: string) => void;
 }) {
   const initial = initials(name || "You");
   const dayLabel = new Date(slot.at).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 
   return (
     <div className="flex flex-col gap-2 md:flex-row md:gap-6">
-      <div className="w-auto shrink-0 pt-0 text-sm font-semibold text-[var(--muted)] md:w-24 md:pt-4">
-        <div>{formatTimeLabel(slot.time)}</div>
-        {slot.extra ? <div className="mt-1 text-[10px] font-bold tracking-wide uppercase">Extra</div> : null}
+      <div className="w-auto shrink-0 pt-0 text-sm font-semibold text-[var(--muted)] md:w-28 md:pt-4">
+        <button
+          type="button"
+          className="text-left hover:text-[#004e99] hover:underline"
+          title="Edit this time"
+          onClick={() => onEditSlot(slot.at)}
+        >
+          {formatTimeLabel(slot.time)}
+        </button>
       </div>
 
       {slot.post ? (
@@ -124,9 +144,14 @@ function SlotRow({
             <div className="flex min-w-0 flex-1 flex-col gap-2">
               <div className="flex items-center justify-between gap-3">
                 <span className="font-bold">{(name || "You").toUpperCase()}</span>
-                <span className="flex items-center gap-1 rounded bg-[#eaeef2] px-2 py-1 text-xs font-bold text-[var(--muted)] dark:bg-[var(--line)]">
+                <button
+                  type="button"
+                  className="flex items-center gap-1 rounded bg-[#eaeef2] px-2 py-1 text-xs font-bold text-[var(--muted)] hover:text-[#004e99] hover:underline dark:bg-[var(--line)]"
+                  title="Edit this date"
+                  onClick={() => onEditSlot(slot.at)}
+                >
                   {dayLabel}
-                </span>
+                </button>
               </div>
               <p className="line-clamp-2 text-base text-[var(--muted)]">{slot.post.body || "Untitled post"}</p>
               <div className="mt-2 flex flex-wrap items-center gap-3 border-t border-[#dfe3e7] pt-2 dark:border-[var(--line)]">
