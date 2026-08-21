@@ -237,7 +237,7 @@ export function Dashboard({ initial }: { initial: Initial }) {
         className="fixed right-4 bottom-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#004e99] text-white shadow-lg hover:scale-105 lg:right-8 lg:bottom-8"
         title="Help"
         onClick={() =>
-          setNotice("Add posts to your time slots. They publish when the time comes — keep this tab open or run the worker. On Vercel Hobby, auto-publish is once a day, so opening My posts also sends anything already due.");
+          setNotice("Add posts to your time slots. They publish when due. Opening this page also sends anything already past its time.")
         }
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
