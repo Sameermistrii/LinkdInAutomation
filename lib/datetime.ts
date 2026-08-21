@@ -3,11 +3,12 @@ export function parseTime(time: string) {
   return { hours: h || 0, minutes: m || 0 };
 }
 
-export function formatTimeLabel(time: string) {
-  const { hours, minutes } = parseTime(time);
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+export function formatAtTime(at: string | Date) {
+  return new Date(at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+}
+
+export function keepQueueSlot(atMs: number, hasPost: boolean, nowMs: number) {
+  return atMs > nowMs || hasPost;
 }
 
 export function dateKey(date: Date) {

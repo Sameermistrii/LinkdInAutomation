@@ -2,12 +2,17 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonError } from "@/lib/http";
 import { isSlotTaken, nextFreeSlot } from "@/lib/schedule";
-import { publishPost } from "@/lib/publish";
+import { publishDuePosts, publishPost } from "@/lib/publish";
 import { requireUser } from "@/lib/session";
 
 export async function GET() {
   const { session, error } = await requireUser();
   if (error || !session) return error!;
+  try {
+    await publishDuePosts(session.userId);
+  } catch (err) {
+    console.error("[posts] publish due failed", err);
+  }
   const posts = await prisma.post.findMany({
     where: { userId: session.userId },
     orderBy: { createdAt: "desc" },

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { QueueBoard, type QueueSlot } from "@/components/QueueBoard";
 import { ScheduleModal } from "@/components/ScheduleModal";
 import { StatusTabs, type TabKey } from "@/components/StatusTabs";
+import { keepQueueSlot } from "@/lib/datetime";
 
 type Post = {
   id: number;
@@ -54,9 +55,9 @@ export function Dashboard({ initial }: { initial: Initial }) {
 
   async function load() {
     try {
-      const [postsRes, slotsRes, accountRes, meRes] = await Promise.all([
+      const slotsRes = await fetch("/api/queue-slots").then((r) => r.json());
+      const [postsRes, accountRes, meRes] = await Promise.all([
         fetch("/api/posts").then((r) => r.json()),
-        fetch("/api/queue-slots").then((r) => r.json()),
         fetch("/api/account").then((r) => r.json()),
         fetch("/api/auth/me").then((r) => r.json()),
       ]);
@@ -111,7 +112,7 @@ export function Dashboard({ initial }: { initial: Initial }) {
   }, []);
 
   const upcomingSlots = useMemo(
-    () => slots.filter((s) => new Date(s.at).getTime() > nowMs),
+    () => slots.filter((s) => keepQueueSlot(new Date(s.at).getTime(), Boolean(s.post), nowMs)),
     [slots, nowMs],
   );
 
@@ -131,12 +132,14 @@ export function Dashboard({ initial }: { initial: Initial }) {
     await load();
   }
 
-  async function skipDay(date: string) {
-    await fetch("/api/schedule", {
+  async function skipDay(date: string, ats: string[]) {
+    const res = await fetch("/api/schedule", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "skip", date }),
+      body: JSON.stringify({ action: "skip", date, ats }),
     });
+    const json = await res.json();
+    if (!res.ok) setNotice(json.error || "Could not skip this day");
     await load();
   }
 
@@ -207,27 +210,18 @@ export function Dashboard({ initial }: { initial: Initial }) {
           </div>
 
           {tab === "queued" ? (
-            upcomingSlots.length ? (
               <QueueBoard
                 slots={upcomingSlots}
                 name={account?.name || sessionName}
                 photoUrl={account?.photoUrl || sessionPhoto}
                 onDelete={(id) => void removePost(id)}
-                onSkipDay={(date) => void skipDay(date)}
+                onSkipDay={(date, ats) => void skipDay(date, ats)}
                 onPostNow={(id) => void postNow(id)}
                 onEditSlot={(at) => {
                   setScheduleEditAt(at);
                   setScheduleOpen(true);
                 }}
               />
-            ) : (
-              <PostList
-                posts={list}
-                emptyText="No scheduled posts."
-                onDelete={(id) => void removePost(id)}
-                onPostNow={(id) => void postNow(id)}
-              />
-            )
           ) : (
             <PostList
               posts={list}
@@ -243,7 +237,7 @@ export function Dashboard({ initial }: { initial: Initial }) {
         className="fixed right-4 bottom-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#004e99] text-white shadow-lg hover:scale-105 lg:right-8 lg:bottom-8"
         title="Help"
         onClick={() =>
-          setNotice("Add posts to your time slots. They publish automatically when a slot is due.")
+          setNotice("Add posts to your time slots. They publish when due. Opening this page also sends anything already past its time.")
         }
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
@@ -258,11 +252,13 @@ export function Dashboard({ initial }: { initial: Initial }) {
           setScheduleOpen(false);
           setScheduleEditAt(null);
         }}
-        onSubmit={async (at, from) => {
+        onSubmit={async (at, from, date) => {
           const res = await fetch("/api/schedule", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(from ? { action: "move", from, at } : { action: "extra", at }),
+            body: JSON.stringify(
+              from ? { action: "move", from, at, date } : { action: "extra", at, date },
+            ),
           });
           const json = await res.json();
           if (!res.ok) throw new Error(json.error || "Could not save schedule");

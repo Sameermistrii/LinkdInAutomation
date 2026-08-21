@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { dateKey, timeFromDate } from "./datetime";
+import { timeFromDate } from "./datetime";
 
 export async function getScheduleRules(userId: string) {
   return prisma.scheduleRule.findMany({
@@ -29,18 +29,15 @@ export async function consumeExtraSlot(userId: string, at: Date | null) {
 
 export async function getQueueSlots(userId: string) {
   await prunePastExtras(userId);
-  const [extras, skips, queued] = await Promise.all([
+  const [extras, queued] = await Promise.all([
     prisma.extraSlot.findMany({ where: { userId, at: { gt: new Date() } }, orderBy: { at: "asc" } }),
-    prisma.scheduleSkip.findMany({ where: { userId } }),
     prisma.post.findMany({
-      where: { userId, status: "queued", scheduledAt: { gt: new Date() } },
+      where: { userId, status: "queued", scheduledAt: { not: null } },
       select: { scheduledAt: true },
     }),
   ]);
-  const skip = new Set(skips.map((s) => s.date));
   const byTime = new Map<number, { at: Date; weekday: number; time: string; extra: boolean }>();
   for (const e of extras) {
-    if (skip.has(dateKey(e.at))) continue;
     byTime.set(e.at.getTime(), {
       at: e.at,
       weekday: e.at.getDay(),
@@ -50,7 +47,6 @@ export async function getQueueSlots(userId: string) {
   }
   for (const p of queued) {
     const at = p.scheduledAt!;
-    if (skip.has(dateKey(at))) continue;
     if (byTime.has(at.getTime())) continue;
     byTime.set(at.getTime(), {
       at,

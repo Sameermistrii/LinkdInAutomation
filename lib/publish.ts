@@ -22,11 +22,12 @@ function mediaKind(mediaType: string): "image" | "document" | null {
   return null;
 }
 
-export async function publishDuePosts() {
+export async function publishDuePosts(userId?: string) {
   const due = await prisma.post.findMany({
     where: {
       status: "queued",
       scheduledAt: { lte: new Date() },
+      ...(userId ? { userId } : {}),
     },
     orderBy: { scheduledAt: "asc" },
   });
