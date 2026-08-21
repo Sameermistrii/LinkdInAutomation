@@ -7,6 +7,10 @@ export function formatAtTime(at: string | Date) {
   return new Date(at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 }
 
+export function keepQueueSlot(atMs: number, hasPost: boolean, nowMs: number) {
+  return atMs > nowMs || hasPost;
+}
+
 export function dateKey(date: Date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");

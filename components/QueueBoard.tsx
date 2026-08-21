@@ -120,6 +120,8 @@ function SlotRow({
   onEditSlot: (at: string) => void;
 }) {
   const initial = initials(name || "You");
+  const atMs = new Date(slot.at).getTime();
+  const due = atMs <= Date.now();
   const dayLabel = new Date(slot.at).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 
   return (
@@ -132,6 +134,7 @@ function SlotRow({
           onClick={() => onEditSlot(slot.at)}
         >
           {formatAtTime(slot.at)}
+          {due && slot.post ? <span className="mt-1 block text-xs font-semibold text-[#004e99]">Due</span> : null}
         </button>
       </div>
 

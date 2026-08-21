@@ -32,7 +32,7 @@ export async function getQueueSlots(userId: string) {
   const [extras, queued] = await Promise.all([
     prisma.extraSlot.findMany({ where: { userId, at: { gt: new Date() } }, orderBy: { at: "asc" } }),
     prisma.post.findMany({
-      where: { userId, status: "queued", scheduledAt: { gt: new Date() } },
+      where: { userId, status: "queued", scheduledAt: { not: null } },
       select: { scheduledAt: true },
     }),
   ]);
